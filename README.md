@@ -71,20 +71,6 @@ The interface, discovery orchestration, Keychain integration, and process manage
 
 Persistent credentials are stored in the login Keychain and each CLI invocation uses `--storage none`. Because credentials must be supplied to the CLI as process arguments, another process running as the same macOS user may be able to inspect them briefly. Diagnostic logs can contain device names, identifiers, addresses, discovery results, and playback/backend information; review logs before attaching them to a public issue. Logs are stored in `~/Library/Logs/Apple TV Remote/` and can be deleted when the app is closed.
 
-## Build and test
-
-```sh
-swift test
-python3 -m venv .packaging/venv
-.packaging/venv/bin/pip install -r Packaging/backend-requirements.txt
-./Scripts/build-app.sh
-open build/AppleTVRemote.app
-```
-
-The packaging-only virtual environment is not copied into the application. The build freezes pyatv into `Contents/Resources/AppleTVRemoteBackend`, verifies the arm64 slice, generates dependency/license notices, and signs the helper before signing the app. The runtime lives under Resources because macOS code signing treats arbitrary one-folder payloads under `Contents/Helpers` as malformed nested bundles. Review `Contents/Resources/THIRD_PARTY_NOTICES.md` before distributing a release.
-
-The unit suite covers command mapping and pairing/metadata parsing. End-to-end validation requires a real Apple TV on the same network.
-
 ## Disclaimer
 
 This is an independent, unofficial project and is not affiliated with, endorsed by, or sponsored by Apple Inc. Apple, Apple TV, macOS, iPhone, iPad, and Siri are trademarks of Apple Inc. The screenshots use fictional media data and contain no personal device information.
