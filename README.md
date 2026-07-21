@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/pmnowak/apple-tv-remote-macos/releases/download/v2.1.0/AppleTVRemote-2.1.0-arm64.dmg"><strong>Download v2.1.0 for Apple silicon</strong></a>
+  <a href="https://github.com/pmnowak/apple-tv-remote-macos/releases/latest"><strong>Download the latest release for Apple silicon</strong></a>
   ·
   <a href="https://github.com/pmnowak/apple-tv-remote-macos/releases/latest">Release notes</a>
 </p>
@@ -44,18 +44,10 @@ Apple TV Remote is a compact SwiftUI menu-bar controller for Apple-silicon Macs.
 
 ## Install
 
-This release requires macOS 14 or later, an Apple-silicon Mac, and the open-source [`pyatv`](https://pyatv.dev/) command-line tools. The Mac and Apple TV must be on the same local network.
+This release requires macOS 14 or later and an Apple-silicon Mac. The Mac and Apple TV must be on the same local network. Version 2.2 bundles its private [`pyatv`](https://pyatv.dev/) backend, so Python, pipx, and a separate pyatv installation are not required.
 
-1. Install `pipx` and `pyatv`:
-
-   ```sh
-   brew install pipx
-   pipx ensurepath
-   pipx install pyatv
-   ```
-
-2. Download [`AppleTVRemote-2.1.0-arm64.dmg`](https://github.com/pmnowak/apple-tv-remote-macos/releases/download/v2.1.0/AppleTVRemote-2.1.0-arm64.dmg), open it, and drag **Apple TV Remote** to Applications.
-3. Open the remote icon in the menu bar, choose an Apple TV, select **Pair Apple TV**, and enter the PIN shown on the television.
+1. Download the latest arm64 DMG, open it, and drag **Apple TV Remote** to Applications.
+2. Open the remote icon in the menu bar, choose an Apple TV, select **Pair Apple TV**, and enter the PIN shown on the television.
 
 The current download is ad-hoc signed and not notarized. macOS may block the first launch; in Finder, Control-click the app, choose **Open**, then confirm. A physical Apple TV is required for pairing and end-to-end operation.
 
@@ -75,7 +67,7 @@ The current download is ad-hoc signed and not notarized. macOS may block the fir
 
 ## How it works
 
-The interface, Bonjour discovery, Keychain integration, and process management are native macOS code. Apple does not publish a public macOS framework for third-party Apple TV remote commands, so this app uses the reverse-engineered Companion and AirPlay support in the [`pyatv`](https://github.com/postlund/pyatv) CLI. `pyatv` is installed separately and is not bundled in the download.
+The interface, discovery orchestration, Keychain integration, and process management are native macOS code. Apple does not publish a public macOS framework for third-party Apple TV remote commands, so the app bundles a pinned, arm64, one-folder helper built from the reverse-engineered Companion and AirPlay support in [`pyatv`](https://github.com/postlund/pyatv). The helper does not use a system Python installation or external `atvremote` executable at runtime.
 
 Persistent credentials are stored in the login Keychain and each CLI invocation uses `--storage none`. Because credentials must be supplied to the CLI as process arguments, another process running as the same macOS user may be able to inspect them briefly. Diagnostic logs can contain device names, identifiers, addresses, discovery results, and playback/backend information; review logs before attaching them to a public issue. Logs are stored in `~/Library/Logs/Apple TV Remote/` and can be deleted when the app is closed.
 
@@ -83,9 +75,13 @@ Persistent credentials are stored in the login Keychain and each CLI invocation 
 
 ```sh
 swift test
+python3 -m venv .packaging/venv
+.packaging/venv/bin/pip install -r Packaging/backend-requirements.txt
 ./Scripts/build-app.sh
 open build/AppleTVRemote.app
 ```
+
+The packaging-only virtual environment is not copied into the application. The build freezes pyatv into `Contents/Resources/AppleTVRemoteBackend`, verifies the arm64 slice, generates dependency/license notices, and signs the helper before signing the app. The runtime lives under Resources because macOS code signing treats arbitrary one-folder payloads under `Contents/Helpers` as malformed nested bundles. Review `Contents/Resources/THIRD_PARTY_NOTICES.md` before distributing a release.
 
 The unit suite covers command mapping and pairing/metadata parsing. End-to-end validation requires a real Apple TV on the same network.
 
